@@ -18,7 +18,7 @@ class BGGPlugin(Star):
     # 注册指令的装饰器。指令名为 桌游查询。注册成功后，发送 `/桌游查询 游戏名` 就会触发这个指令，并回复 桌游相关详情
     @filter.command("桌游查询")
     async def 桌游查询(self, event: AstrMessageEvent, game: str):
-        """查询桌游信息 指令"""  # 这是 handler 的描述，将会被解析方便用户了解插件内容。建议填写。
+        """查询桌游信息 指令`/桌游查询 游戏名`或`/桌游查询 游戏ID`"""  # 这是 handler 的描述，将会被解析方便用户了解插件内容。建议填写。
 
         # 判断输入是ID还是名称
         if game.isdigit():
@@ -114,7 +114,7 @@ class BGGPlugin(Star):
         if not items:
             return "无匹配结果"
 
-        count = root.find(".//items").get("total")
+        count = root.get("total")
         if int(count) == 1:
             id = items[0].get("id")
             logger.info("找到唯一ID{id}，直接查询详细信息")
