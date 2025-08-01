@@ -1,8 +1,8 @@
-# helloworld
+# astrbot_plugin_bgg
 
-AstrBot 插件模板
+AstrBot 插件
 
-A template plugin for AstrBot plugin feature
+接入BGG_XML_API2，实现机器人查询桌游相关讯息功能。
 
 # 支持
 
