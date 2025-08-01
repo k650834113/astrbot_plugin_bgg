@@ -31,7 +31,7 @@ class BGGPlugin(Star):
         """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""
 
     # === BGG API 交互层 ===
-    async def fetch_game_by_id(self, game_id: str):
+    async def fetch_game_by_id(self, game_id: str) -> list[Comp.BaseMessageComponent]: 
         """通过ID获取桌游基础信息"""
         Chain = []
         async with aiohttp.ClientSession() as session:
@@ -44,7 +44,7 @@ class BGGPlugin(Star):
                 xml_data = await resp.text()
                 return self.parse_basic_xml(xml_data)
 
-    def parse_basic_xml(self, xml_str: str):
+    def parse_basic_xml(self, xml_str: str) -> list[Comp.BaseMessageComponent]:
         """解析基础信息XML"""
         Chain = []
         root = ET.fromstring(xml_str)
@@ -88,7 +88,7 @@ class BGGPlugin(Star):
         )
         return Chain
 
-    async def search_game_by_name(self, name: str) -> str:
+    async def search_game_by_name(self, name: str) -> list[Comp.BaseMessageComponent]:
         """通过名称搜索桌游，返回匹配列表，再通过ID进行详细查询"""
         Chain = []
         logger.info("通过名称搜索")
@@ -102,7 +102,7 @@ class BGGPlugin(Star):
                 xml_data = await resp.text()
                 return self.parse_search_xml(xml_data)
 
-    def parse_search_xml(self, xml_str: str) -> str:
+    def parse_search_xml(self, xml_str: str)  -> list[Comp.BaseMessageComponent]:
         """解析搜索结果XML"""
         Chain = []
         root = ET.fromstring(xml_str)
