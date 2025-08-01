@@ -31,7 +31,7 @@ class BGGPlugin(Star):
         """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""
 
     # === BGG API 交互层 ===
-    async def fetch_game_by_id(self, game_id: str) -> list[Comp.BaseMessageComponent]: 
+    async def fetch_game_by_id(self, game_id: str) -> list[Comp.BaseMessageComponent]:
         """通过ID获取桌游基础信息"""
         Chain = []
         async with aiohttp.ClientSession() as session:
@@ -61,14 +61,18 @@ class BGGPlugin(Star):
             + "-"
             + item.find(".//maxplayers").get("value")
         )
-        bestplayers = item.find(".//bestwith").get("value")
+        bestplayers = (
+            item.find(".//poll-summary[@name='suggested_numplayers']")
+            .find(".//result[@name='bestwith']")
+            .get("value")
+        )
         rating = item.find(".//average").get("value")
         playtime = (
             item.find(".//minplaytime").get("value")
             + "-"
             + item.find(".//maxplaytime").get("value")
         )
-        description = item.find(".//description").text.strip()  # 截断长描述
+        # description = item.find(".//description").text.strip()  # 截断长描述
         weight = item.find(".//averageweight").get("value")
         image = item.find(".//thumbnail").text.strip()
 
@@ -80,8 +84,8 @@ class BGGPlugin(Star):
                     f"👥 人数: {players} |最佳人数：{bestplayers} \n"
                     f"🕐时长：{playtime}\n"
                     f"⭐ 评分: {rating}/10\n"
-                    f"📖 简介: {description}\n"
-                    f"🧠复杂度：{weight}\n"
+                    # f"📖 简介: {description}\n"
+                    f"🧠复杂度：{weight}/5\n"
                     f"🌐 完整数据: https://boardgamegeek.com/boardgame/{item.get('id')}"
                 )
             )
@@ -100,9 +104,9 @@ class BGGPlugin(Star):
                     Chain.append(Comp.Plain(text="搜索失败，请重试"))
                     return Chain
                 xml_data = await resp.text()
-                return self.parse_search_xml(xml_data)
+                return await self.parse_search_xml(xml_data)
 
-    def parse_search_xml(self, xml_str: str)  -> list[Comp.BaseMessageComponent]:
+    async def parse_search_xml(self, xml_str: str) -> list[Comp.BaseMessageComponent]:
         """解析搜索结果XML"""
         Chain = []
         root = ET.fromstring(xml_str)
@@ -112,7 +116,9 @@ class BGGPlugin(Star):
 
         count = root.find(".//items").get("total")
         if int(count) == 1:
-            return self.fetch_game_by_id(items[0].get("id"))
+            id = items[0].get("id")
+            logger.info("找到唯一ID{id}，直接查询详细信息")
+            return await self.fetch_game_by_id(id)
 
         reply = "🔍 搜索结果：\n"
         for item in items:
