@@ -1,5 +1,6 @@
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, register
+from astrbot.api import logger
 import aiohttp
 import xml.etree.ElementTree as ET
 
@@ -33,6 +34,7 @@ class BGGPlugin(Star):
         """通过ID获取桌游基础信息"""
         async with aiohttp.ClientSession() as session:
             url = f"{self.api_base}/thing?id={game_id}&stats=1"
+            logger.info("开始查询详细信息")
             async with session.get(url) as resp:
                 if resp.status != 200:
                     return "查询失败，请检查ID或重试"
@@ -68,8 +70,10 @@ class BGGPlugin(Star):
 
     async def search_game_by_name(self, name: str) -> str:
         """通过名称搜索桌游，返回匹配列表，再通过ID进行详细查询"""
+        logger.info("通过名称搜索")
         async with aiohttp.ClientSession() as session:
             url = f"{self.api_base}/search?query={name}&type=boardgame"
+            logger.info("获取XML列表")
             async with session.get(url) as resp:
                 if resp.status != 200:
                     return "搜索失败，请重试"
