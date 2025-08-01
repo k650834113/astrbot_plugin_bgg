@@ -64,7 +64,7 @@ class BGGPlugin(Star):
             + item.find(".//maxplaytime").get("value")
         )
         description = (
-            item.find(".//description").text.strip()[:150] + "..."
+            item.find(".//description").text.strip()
         )  # 截断长描述
         weight = item.find(".//averageweight").get("value")
         return (
