@@ -1,6 +1,8 @@
-from astrbot.api.event import filter, AstrMessageEvent, MessageEventResult
+from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, register
-from astrbot.api import logger
+import aiohttp
+import ET
+
 
 @register("bgg", "KisaragiIzumi", "接入BGG API插件", "1.0.0")
 class BGGPlugin(Star):
@@ -10,17 +12,12 @@ class BGGPlugin(Star):
 
     async def initialize(self):
         """可选择实现异步的插件初始化方法，当实例化该插件类之后会自动调用该方法。"""
-    
+
     # 注册指令的装饰器。指令名为 桌游查询。注册成功后，发送 `/桌游查询 游戏名` 就会触发这个指令，并回复 桌游相关详情
     @filter.command("桌游查询")
-    async def 桌游查询(self, event: AstrMessageEvent,game):
-        """查询桌游信息 指令""" # 这是 handler 的描述，将会被解析方便用户了解插件内容。建议填写。
-        #user_name = event.get_sender_name()
-        #message_str = event.message_str # 用户发的纯文本消息字符串
-        #message_chain = event.get_messages() # 用户所发的消息的消息链 # from astrbot.api.message_components import *
-        #logger.info(message_chain)
-        #yield event.plain_result(f"Hello, {user_name}, 你发了 {message_str}!") # 发送一条纯文本消息
-        
+    async def 桌游查询(self, event: AstrMessageEvent, game):
+        """查询桌游信息 指令"""  # 这是 handler 的描述，将会被解析方便用户了解插件内容。建议填写。
+
         # 判断输入是ID还是名称
         if game.isdigit():
             result = await self.fetch_game_by_id(game)
@@ -30,7 +27,8 @@ class BGGPlugin(Star):
 
     async def terminate(self):
         """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""
-# === BGG API 交互层 ===
+
+    # === BGG API 交互层 ===
     async def fetch_game_by_id(self, game_id: str) -> str:
         """通过ID获取桌游基础信息"""
         async with aiohttp.ClientSession() as session:
@@ -51,9 +49,15 @@ class BGGPlugin(Star):
         # 提取核心字段
         title = item.find(".//name[@type='primary']").get("value")
         year = item.find(".//yearpublished").get("value")
-        players = item.find(".//minplayers").get("value") + "-" + item.find(".//maxplayers").get("value")
+        players = (
+            item.find(".//minplayers").get("value")
+            + "-"
+            + item.find(".//maxplayers").get("value")
+        )
         rating = item.find(".//average").get("value")
-        description = item.find(".//description").text.strip()[:150] + "..."  # 截断长描述
+        description = (
+            item.find(".//description").text.strip()[:150] + "..."
+        )  # 截断长描述
 
         return (
             f"🎲 {title} ({year})\n"
