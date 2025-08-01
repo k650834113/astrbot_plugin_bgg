@@ -1,7 +1,7 @@
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, register
 import aiohttp
-import ET
+import xml.etree.ElementTree as ET
 
 
 @register("bgg", "KisaragiIzumi", "接入BGG API插件", "1.0.0")
