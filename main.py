@@ -16,7 +16,7 @@ class BGGPlugin(Star):
 
     # 注册指令的装饰器。指令名为 桌游查询。注册成功后，发送 `/桌游查询 游戏名` 就会触发这个指令，并回复 桌游相关详情
     @filter.command("桌游查询")
-    async def 桌游查询(self, event: AstrMessageEvent, game):
+    async def 桌游查询(self, event: AstrMessageEvent, game: str):
         """查询桌游信息 指令"""  # 这是 handler 的描述，将会被解析方便用户了解插件内容。建议填写。
 
         # 判断输入是ID还是名称
@@ -24,7 +24,7 @@ class BGGPlugin(Star):
             result = await self.fetch_game_by_id(game)
         else:
             result = await self.search_game_by_name(game)
-        await event.plain_result(result)
+        yield event.plain_result(result)
 
     async def terminate(self):
         """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""
@@ -56,15 +56,24 @@ class BGGPlugin(Star):
             + "-"
             + item.find(".//maxplayers").get("value")
         )
+        bestplayers = item.find(".//bestwith").get("value")
         rating = item.find(".//average").get("value")
+        playtime = (
+            item.find(".//minplaytime").get("value")
+            + "-"
+            + item.find(".//maxplaytime").get("value")
+        )
         description = (
             item.find(".//description").text.strip()[:150] + "..."
         )  # 截断长描述
-
+        weight = item.find(".//averageweight").get("value")
         return (
             f"🎲 {title} ({year})\n"
-            f"👥 人数: {players} | ⭐ 评分: {rating}/10\n"
+            f"👥 人数: {players} |最佳人数：{bestplayers} \n"
+            f"🕐时长：{playtime}\n"
+            f"⭐ 评分: {rating}/10\n"
             f"📖 简介: {description}\n"
+            f"🧠复杂度：{weight}\n"
             f"🌐 完整数据: https://boardgamegeek.com/boardgame/{item.get('id')}"
         )
 
@@ -87,8 +96,12 @@ class BGGPlugin(Star):
         if not items:
             return "无匹配结果"
 
+        count = root.find(".//items").get("total")
+        if int(count) == 1:
+            return self.fetch_game_by_id(items[0].get("id"))
+
         reply = "🔍 搜索结果：\n"
-        for item in items[:5]:  # 最多返回5条
+        for item in items:
             title = item.find("name").get("value")
             year = item.get("yearpublished") or "未知年份"
             reply += f"- {title} ({year}) | ID: {item.get('id')}\n"
