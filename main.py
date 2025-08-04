@@ -49,9 +49,13 @@ class BGGPlugin(Star):
         Chain = []
         root = ET.fromstring(xml_str)
         item = root.find(".//item[@type='boardgame']")
+        item_type = "桌游"
         if item is None:
-            Chain.append(Comp.Plain(text="未找到匹配的桌游"))
-            return Chain
+            item = root.find(".//item[@type='boardgameexpansion']")
+            item_type = "扩展"
+            if item is None:
+                Chain.append(Comp.Plain(text="未找到匹配的桌游"))
+                return Chain
 
         # 提取核心字段
         title = item.find(".//name[@type='primary']").get("value")
@@ -72,7 +76,8 @@ class BGGPlugin(Star):
             + "-"
             + item.find(".//maxplaytime").get("value")
         )
-        # description = item.find(".//description").text.strip()  # 截断长描述
+        description = item.find(".//description").text.strip()  # 截断长描述
+        description.replace('&#10;','\n')
         weight = item.find(".//averageweight").get("value")
         image = item.find(".//thumbnail").text.strip()
 
@@ -80,11 +85,11 @@ class BGGPlugin(Star):
         Chain.append(
             Comp.Plain(
                 text=(
-                    f"🎲 {title} ({year})\n"
+                    f"🎲 {item_type}：{title} ({year})\n"
                     f"👥 人数: {players} |最佳人数：{bestplayers} \n"
                     f"🕐时长：{playtime}\n"
                     f"⭐ 评分: {rating}/10\n"
-                    # f"📖 简介: {description}\n"
+                    f"📖 简介: {description}\n"
                     f"🧠复杂度：{weight}/5\n"
                     f"🌐 完整数据: https://boardgamegeek.com/boardgame/{item.get('id')}"
                 )
@@ -112,7 +117,8 @@ class BGGPlugin(Star):
         root = ET.fromstring(xml_str)
         items = root.findall(".//item")
         if not items:
-            return "无匹配结果"
+            Chain.append(Comp.Plain(text="BGG中未找到相关桌游，请检查代理名称是否正确，或使用英文原名"))
+            return Chain
 
         count = root.get("total")
         if int(count) == 1:
@@ -123,7 +129,7 @@ class BGGPlugin(Star):
         reply = "🔍 搜索结果：\n"
         for item in items:
             title = item.find("name").get("value")
-            year = item.get("yearpublished") or "未知年份"
+            year = item.find("yearpublished").get("value") or "未知年份"
             reply += f"- {title} ({year}) | ID: {item.get('id')}\n"
         reply += "💡 输入 /桌游查询 ID 查看详情（如：/桌游查询 1234）"
 
