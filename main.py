@@ -6,7 +6,7 @@ import aiohttp
 import xml.etree.ElementTree as ET
 
 
-@register("bgg", "KisaragiIzumi", "接入BGG API插件", "1.0.0")
+@register("bgg", "KisaragiIzumi", "接入BGG API插件", "1.0.1")
 class BGGPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
@@ -77,7 +77,9 @@ class BGGPlugin(Star):
             + item.find(".//maxplaytime").get("value")
         )
         description = item.find(".//description").text.strip()  # 截断长描述
-        description.replace('&#10;','\n')
+        description = description.replace('&#10;','\n')
+        description = description.replace('&ldquo;','\"')
+        description = description.replace('&rdquo;','\"')
         weight = item.find(".//averageweight").get("value")
         image = item.find(".//thumbnail").text.strip()
 

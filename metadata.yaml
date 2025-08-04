@@ -1,5 +1,5 @@
 name: AstrBot_bgg
 desc: 通过BGG官网API查询桌游相关信息
-version: v1.0
+version: v1.0.1
 author: 泉
 repo: https://github.com/k650834113/astrbot_plugin_bgg
